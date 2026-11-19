@@ -1,0 +1,528 @@
+<title>Checklist KPI ADISURC</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: barra periodo + avanzamento in alto, filtri, elenco per area con righe KPI espandibili */
+:root{
+  --bg:#f5f6f4; --surface:#ffffff; --fg:#1d2326; --muted:#5d686d; --line:#dde1df;
+  --accent:#1f6f6b; --accent-soft:#e1f0ee; --ok:#2a7d46; --ok-soft:#e3f2e8; --warn:#9a6700; --warn-soft:#fbf0d4; --bad:#b4332b;
+  --font:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif; --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#13181a; --surface:#1b2225; --fg:#e6ebec; --muted:#9aa7ab; --line:#2c373b;
+  --accent:#58b8b1; --accent-soft:#1c3533; --ok:#6cc58a; --ok-soft:#1b3326; --warn:#e0b04a; --warn-soft:#3a3018; --bad:#ec7b73; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#13181a; --surface:#1b2225; --fg:#e6ebec; --muted:#9aa7ab; --line:#2c373b;
+  --accent:#58b8b1; --accent-soft:#1c3533; --ok:#6cc58a; --ok-soft:#1b3326; --warn:#e0b04a; --warn-soft:#3a3018; --bad:#ec7b73; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:14px;line-height:1.45;
+  padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--muted);margin:2px 0 0;font-size:13px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+label.f{display:flex;flex-direction:column;gap:3px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);min-width:0}
+input,select,button{font:inherit;color:var(--fg)}
+input[type=text],input[type=number],input[type=month],select,input[type=search]{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:7px 9px;min-width:0;text-transform:none;letter-spacing:0;font-size:14px}
+button{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:7px 11px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.prog{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);width:0;transition:width .2s}
+.stats{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted)}
+.stats b{color:var(--fg);font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:4px 10px;font-size:12px;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .chip[aria-pressed=true]{color:#0c1516}}
+:root[data-theme="dark"] .chip[aria-pressed=true]{color:#0c1516}
+.area{display:flex;flex-direction:column;gap:0}
+.area>header{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:6px 2px 8px;flex-wrap:wrap}
+.area h2{font-size:14px;font-weight:600;margin:0}
+.area .cnt{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.list{background:var(--surface);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.kpi{border-top:1px solid var(--line);padding:10px 12px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px}
+.kpi:first-child{border-top:0}
+.kpi.done{background:var(--ok-soft)}
+.id{font-family:var(--mono);font-size:12px;color:var(--muted);padding-top:2px}
+.main{min-width:0;display:flex;flex-direction:column;gap:6px}
+.title{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline}
+.title strong{font-weight:500}
+.tag{font-size:11px;border-radius:3px;padding:1px 6px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.tag.proc{background:var(--warn-soft);color:var(--warn)}
+.meta{font-size:12px;color:var(--muted);font-family:var(--mono)}
+.checks{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center}
+.checks label{display:flex;gap:6px;align-items:center;cursor:pointer;font-size:13px}
+.checks input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+.val{display:inline-flex;align-items:stretch;gap:4px}
+.val input{width:96px;padding:4px 7px;font-size:13px;-moz-appearance:textfield;appearance:textfield}
+.val input::-webkit-outer-spin-button,.val input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.arrs{display:flex;flex-direction:column;gap:2px}
+.arr{padding:0 8px;font-size:9px;line-height:1;flex:1;border-radius:3px;min-height:14px}
+.un{align-self:center;font-size:12px;color:var(--muted);min-width:22px}
+.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .primary{color:#0c1516}}
+:root[data-theme="dark"] .primary{color:#0c1516}
+.actions .row{gap:8px}
+@media print{
+  html:root:root{--bg:#fff;--surface:#fff;--fg:#000;--muted:#444;--line:#bbb;--accent:#1f6f6b;--accent-soft:#e1f0ee;--ok-soft:#fff;--warn:#7a5200;--warn-soft:#f5f5f5}
+  .noprint,.toast{display:none!important}
+  body{padding:0}
+  .kpi{break-inside:avoid}
+  .area>header{break-after:avoid}
+}
+.star{color:var(--warn);font-size:15px;line-height:1}
+.det{font-size:12px;color:var(--muted);margin:0}
+.empty{padding:24px;text-align:center;color:var(--muted)}
+.toast{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:4px;font-size:13px}
+.foto{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:4px 10px;font-size:13px;cursor:pointer}
+.foto:hover{border-color:var(--accent)}
+.foto:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.foto input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.foto svg{width:16px;height:16px;flex:none}
+.thumbs{display:flex;flex-wrap:wrap;gap:8px}
+.th{position:relative;width:64px;height:64px;border:1px solid var(--line);border-radius:4px;overflow:hidden;background:var(--bg)}
+.th img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in}
+.th .del{position:absolute;top:2px;right:2px;padding:0 5px;font-size:12px;line-height:16px;border-radius:3px;background:var(--surface);opacity:.9}
+.th .del[data-arm]{background:var(--bad);border-color:var(--bad);color:#fff;opacity:1}
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10;cursor:zoom-out}
+.lb img{max-width:100%;max-height:100%;border-radius:4px}
+@media print{.foto,.th .del,.lb{display:none!important}}
+@media (max-width:520px){.kpi{grid-template-columns:1fr}.checks input[type=text]{width:100%}}
+</style>
+
+<div class="wrap">
+  <div>
+    <h1>Checklist KPI ADISURC</h1>
+    <p class="sub">Autocontrollo dell'Aggiudicatario sulla Matrice KPI (Allegato A) e sugli adempimenti degli artt. 40-quinquies e 42-bis. I controlli con la stella ★ ("Integrativi") non sono KPI contrattuali: completano il presidio interno su obblighi del Capitolato privi di KPI; dove manca un valore nel testo, la soglia è una proposta. Lo stato è salvato in questo browser, per periodo.</p>
+  </div>
+
+  <div class="panel">
+    <div class="row">
+      <label class="f" style="flex:1 1 200px">Compilatore<input type="text" id="compilatore" placeholder="Nome e cognome" autocomplete="name"></label>
+      <label class="f">Mese<input type="month" id="mese"></label>
+      <label class="f">Quindicina
+        <select id="quind"><option value="Q1">1ª (giorni 1-15)</option><option value="Q2">2ª (giorni 16-fine)</option></select>
+      </label>
+      <label class="f" style="flex:1 1 180px">Cerca<input type="search" id="cerca" placeholder="Codice o parola (es. 4.3, ticket)"></label>
+      <label class="f">Periodicità
+        <select id="per"><option value="">Tutte</option></select>
+      </label>
+      <label class="f">Tipo
+        <select id="tipo"><option value="">Tutti</option><option value="c">Allegato A</option><option value="i">Integrativi</option></select>
+      </label>
+      <label class="f">Stato
+        <select id="stato"><option value="">Tutti</option><option value="open">Da completare</option><option value="done">Completati</option></select>
+      </label>
+    </div>
+    <div class="prog">
+      <div class="bar"><i id="barfill"></i></div>
+      <div class="stats" id="stats"></div>
+    </div>
+    <div class="row noprint" style="margin-top:12px">
+      <div class="chips" id="areas" style="flex:1 1 300px"></div>
+      <button id="copia" type="button">Copia riepilogo</button>
+      <button id="reset" type="button">Azzera periodo</button>
+    </div>
+  </div>
+
+  <div id="out" style="display:flex;flex-direction:column;gap:18px"></div>
+
+  <div class="panel actions noprint">
+    <div class="row">
+      <button id="bStampa" type="button">Stampa PDF</button>
+      <button id="bInvia" type="button" class="primary">Invia PDF</button>
+      <button id="bMail" type="button">E-mail</button>
+      <button id="bWa" type="button">WhatsApp</button>
+    </div>
+    <p class="sub" style="margin-top:10px">"Stampa PDF" apre la stampa: scegli "Salva come PDF" per ottenere il file. "Invia PDF" apre il menu di condivisione del dispositivo (e-mail, WhatsApp e altre app) con il PDF allegato. "E-mail" e "WhatsApp" scaricano il PDF e aprono un messaggio già scritto: allega il file scaricato. Se in questa vista i pulsanti non rispondono, apri il file HTML salvato sul computer.</p>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+/* [id, nome, periodicità, soglia minima, target, fonte] — fonte: Allegato A, §4 e §5 */
+var PERIODI={U:'Una tantum',Q:'Quindicinale',M:'Mensile',B:'Bimestrale',T:'Trimestrale',QD:'Quadrimestrale',S:'Semestrale',A:'Annuale',P:'Adempimento'};
+var AREE=[
+ {k:'pres',n:'Presidio, reception e vigilanza (25%)',i:[
+  ['4.1.1','Presenza continuativa del personale di presidio','Q','≥ 99%','99,9%','Registri turni firmati, log badge, verbali sostituzioni'],
+  ['4.1.2','Tempo medio di check-in / check-out','M','≤ 30 min','≤ 15 min','Gestionale ospiti (timestamp), verbali di consegna'],
+  ['4.1.3','Notifica Portale Alloggiati entro 24 ore','Q','≥ 95%','100%','Log Alloggiati Web + registro ingressi'],
+  ['4.1.4','Ronde ai piani e perimetrali eseguite','Q','≥ 95%','100%','Punzonature elettroniche, timbrature, log rilevatori'],
+  ['4.1.5','Rotazione quadrimestrale del personale','QD','≥ 90%','100%','Piano organizzativo, registri turni'],
+  ['4.1.6','Dotazioni personale (ManDown, badge, divisa, inglese B1)','M','≥ 95%','100%','Verifica a campione 10% addetti, registro dotazioni'],
+  ['4.1.7','Eventi di sicurezza con verbale chiuso entro 24 ore','M','≥ 90%','100%','Registro eventi, PEC, verbali interni']]},
+ {k:'pul',n:'Pulizia, sanificazione, disinfestazione (20%)',i:[
+  ['4.2.1','Aderenza al Programma Operativo Mensile (POM)','Q','≥ 95%','100%','POM, registro elettronico interventi, verbali a campione'],
+  ['4.2.2','Indice di conformità delle Unità di Controllo (UdC)','Q','≥ 80% (0,80)','95% (0,95)','Verbali del soggetto terzo e del DEC'],
+  ['4.2.3','Frequenze di disinfestazione e derattizzazione','T','100%','100%','Attestati ditta specializzata, calendario con DEC'],
+  ['4.2.4','Conformità documentale CAM (DM 51/2021)','T','100%','100%','Schede tecniche, certificazioni, attestati di formazione'],
+  ['4.2.5','Tempo di intervento su pulizie straordinarie','M','≤ 24 h','≤ 8 h','Sistema ticket'],
+  ['4.2.6','Pulizia post cambio assegnatario entro 24 ore','M','≥ 95%','100%','Verbali di check-in successivo, ticket']]},
+ {k:'man',n:'Piccola manutenzione (15%)',i:[
+  ['4.3.1','Tempo medio di presa in carico delle segnalazioni','Q','≤ 4 h','≤ 1 h','Sistema ticket (estrazione con marcatura temporale)'],
+  ['4.3.2','Tempo medio di risoluzione, interventi standard','Q','≤ 48 h','≤ 24 h','Sistema ticket'],
+  ['4.3.3','Tempo medio di risoluzione, interventi urgenti','Q','≤ 8 h','≤ 2 h','Sistema ticket'],
+  ['4.3.4','Interventi chiusi nei tempi previsti','Q','≥ 90%','100%','Sistema ticket'],
+  ['4.3.5','Ticket aperti da oltre 7 giorni','M','≤ 5 per residenza','0','Report backlog del sistema ticket']]},
+ {k:'sic',n:'Sicurezza e squadra di pronto intervento (12%)',i:[
+  ['4.5.1','Tempo di attivazione della squadra di pronto intervento','M','≤ 4 min','≤ 2 min','Log chiamate, Rapportini di Intervento'],
+  ['4.5.2','Rapportini di Intervento controfirmati dal DEC entro 5 giorni','M','≥ 95%','100%','Archivio Rapportini'],
+  ['4.5.3','Personale con attestati emergenza vigenti','T','100%','100%','Archivio attestati'],
+  ['4.5.4','Incontri con gli studenti su salute e sicurezza (2/anno)','S','100%','100% (+ partecipazione ≥ 30%)','Verbali firmati, fogli presenze'],
+  ['4.5.5','Controlli periodici sugli apparati di sicurezza','M','≥ 95%','100%','Registro controlli firmato, verbali DEC']]},
+ {k:'amm',n:'Gestione amministrativa degli assegnatari',i:[
+  ['4.6.1','Verbali di consegna e restituzione sottoscritti in contraddittorio','M','100%','100%','Archivio verbali, gestionale'],
+  ['4.6.2','Aggiornamento del registro elettronico ospiti entro 24 ore','M','≥ 95%','100%','Log del gestionale'],
+  ['4.6.3','Assenze oltre 10 giorni segnalate entro 48 ore','M','≥ 90%','100%','Registro PEC, log assenze'],
+  ['4.6.4','Tempo di assegnazione del posto letto','M','≤ 24 h','≤ 4 h','Gestionale ospiti (formula da chiarire)'],
+  ['4.6.5','Conservazione e trasmissione della documentazione','M','≥ 95%','100%','Archivio elettronico, log di trasmissione']]},
+ {k:'bia',n:'Nolo e lavaggio biancheria',i:[
+  ['4.4.1','Rispetto delle frequenze di cambio','M','≥ 95%','100%','Registro consegne, log RFID'],
+  ['4.4.2','Qualità dei kit consegnati (campione minimo 10%)','M','≥ 90%','100%','Verbali di ispezione con checklist'],
+  ['4.4.3','Disponibilità della scorta (2 cambi per posto letto)','M','≥ 95%','100%','Ispezioni deposito, autodichiarazione'],
+  ['4.4.4','Cambio completo (5 elementi) al cambio ospite','M','100%','100%','Verbali di check-in, registro consegne']]},
+ {k:'res',n:'Responsabile aziendale (5%)',i:[
+  ['4.7.1','Presenza di almeno 20 ore settimanali per residenza','M','≥ 95%','100%','Registro presenze firmato'],
+  ['4.7.2','Reperibilità 24/7: risposta entro 15 minuti','M','≥ 90%','100%','Log chiamate della Committente'],
+  ['4.7.3','Riunioni mensili con RUP/DEC e relazione','M','≥ 90%','100%','Verbali, relazione mensile']]},
+ {k:'sal',n:'Salute, sicurezza ed emergenze (5%)',i:[
+  ['4.8.1','Compliance DUVRI','S','100%','100%','Verbali DEC con RSPP'],
+  ['4.8.2','Prove di esodo secondo legge','A','100%','100%','Verbali firmati'],
+  ['4.8.3','Adeguatezza DPI e cartellonistica','T','≥ 95%','100%','Verbali DEC, foto'],
+  ['4.8.4','Segnalazione tempestiva delle emergenze','M','≥ 90%','100%','Registro emergenze, PEC, log telefonico'],
+  ['4.8.5','Regolarità contributiva (DURC)','M','100%','100%','DURC online'],
+  ['4.8.6','Formazione obbligatoria aggiornata','T','≥ 95%','100%','Archivio attestati']]},
+ {k:'amb',n:'Sostenibilità ambientale (5%)',i:[
+  ['4.9.1','Prodotti conformi ai CAM','T','≥ 90%','100%','Acquisti, schede tecniche, registri magazzino'],
+  ['4.9.2','Raccolta differenziata','M','≥ 75%','85%','Rapporti gestione rifiuti, verifiche a campione'],
+  ['4.9.3','Consumi energetici per ospite','M','≤ benchmark + 15%','≤ benchmark','Letture contatori (benchmark da definire)']]},
+ {k:'stu',n:'Qualità percepita (30%), monitoraggio',i:[
+  ['5.1','Soddisfazione complessiva (CSAT)','B','≥ 3,5 / 5','4,2 / 5','Questionario bimestrale'],
+  ['5.2','Qualità percepita della pulizia','B','≥ 3,5 / 5','4,2 / 5','Questionari e micro-questionari'],
+  ['5.3','Qualità percepita della manutenzione','M','≥ 3,5 / 5','4,2 / 5','Micro-questionari (min. 30 risposte/mese)'],
+  ['5.4','Soddisfazione su reception e accoglienza','B','≥ 3,5 / 5','4,3 / 5','Questionari e micro-questionario check-in'],
+  ['5.5','Sicurezza percepita','B','≥ 3,5 / 5','4,3 / 5','Questionario bimestrale'],
+  ['5.6','Soddisfazione su biancheria e tessile','B','≥ 3,5 / 5','4,0 / 5','Questionari e micro-questionari'],
+  ['5.7','Net Promoter Score (NPS)','S','≥ 0','≥ +20','Questionario semestrale o a fine soggiorno'],
+  ['5.8','Reclami formali ogni 100 ospiti','M','≤ 5','≤ 1','Registro reclami formali']]},
+ {k:'x1',x:1,n:'Integrativi: presidio e vigilanza',i:[
+  ['C.1.1','Raccomandate, telegrammi e pacchi consegnati con firma di ricevuta','M','100%','100%','Art. 17-bis lett. c. Registro posta'],
+  ['C.1.2','Ospiti esterni registrati e usciti entro l\'orario del Regolamento','Q','100%','100%','Art. 17-bis lett. d; art. 40 (UdC portierato). Registro visitatori'],
+  ['C.1.3','Consegna e ritiro dei dispositivi di accesso registrati','M','100%','100%','Art. 17-bis lett. o, p. Registro chiavi e badge'],
+  ['C.1.4','Ispezione di accessi e locali dopo la chiusura del portone','Q','100%','100%','Art. 17-bis lett. dd. Punzonature, registro ronde'],
+  ['C.1.5','Vigilanza sul divieto di fumo e accertamenti registrati','M','100% dei rilievi','100%','Art. 25. Registro accertamenti'],
+  ['C.1.6','Squadra di pronto intervento di 1 addetto ogni 50 assegnatari in ogni turno','M','100% dei turni','100%','Art. 26. Piano turni della squadra'],
+  ['C.1.7','Danni, ammanchi e comportamenti scorretti segnalati alla Committente','M','entro 48 h (proposta)','entro 24 h (proposta)','Artt. 17-bis lett. j, 22. PEC, registro segnalazioni'],
+  ['C.1.8','Videosorveglianza e dispositivi ManDown funzionanti (prova periodica)','M','≥ 98% (proposta)','100%','Artt. 18, 19, 40. Verbali di prova, log dispositivi'],
+  ['C.1.9','Turni 8-16 coperti da addetti che si esprimono in inglese (B1 entro il 2° anno)','M','100% dei turni','100%','Art. 16. Piano turni, attestati'],
+  ['C.1.10','Attestato per la riconduzione al piano degli ascensori (entro 1 mese dall\'avvio)','U','100% del personale','100%','Art. 16. Attestati'],
+  ['C.1.11','Telefono di portineria usato solo per il servizio','T','nessun abuso','nessun abuso','Art. 21. Verifiche a campione della Committente'],
+  ['C.1.12','Chiusura estiva: camere liberate e oggetti nel deposito','A','100%','100%','Art. 17-bis lett. v. Verbali di chiusura']]},
+ {k:'x2',x:1,n:'Integrativi: pulizia e sanificazione',i:[
+  ['C.2.1','POM consegnato a RUP e DEC entro la settimana prima dell\'inizio del mese','M','100%','100%','Art. 29. PEC di trasmissione'],
+  ['C.2.2','POM aggiornato a ogni richiesta della Committente','M','100%','100%','Art. 29. Versioni del POM'],
+  ['C.2.3','Pulizia mensile dei filtri dell\'aria e delle griglie di ventilazione delle camere','M','100%','100%','Art. 29 punto 3. Registro interventi'],
+  ['C.2.4','Detergenti sulle superfici ad alto contatto: alcol ≥ 70% v/v o ipoclorito 0,1%','M','100%','100%','Art. 29 punto 3. Schede tecniche, verifica a campione'],
+  ['C.2.5','Vetrate esterne pulite con cestello (almeno 1 intervento/anno)','A','100%','100%','Art. 29 punto 1B. Rapporto di intervento'],
+  ['C.2.6','Sacchetti, contenitori differenziata e consumabili igienici sempre presenti','Q','≥ 95% (proposta)','100%','Artt. 29, 40 (UdC pulizia). Verifica a campione']]},
+ {k:'x3',x:1,n:'Integrativi: piccola manutenzione',i:[
+  ['C.3.1','Interventi programmati eseguiti rispetto al programma','M','≥ 95% (proposta)','100%','Art. 33. Programma manutenzioni, sistema ticket'],
+  ['C.3.2','Ticket riaperti per intervento non risolto','M','≤ 5% (proposta)','0','Art. 40 (UdC manutenzione). Sistema ticket'],
+  ['C.3.3','Messa in sicurezza iniziale dei ticket urgenti entro 1 ora','M','≥ 95% (proposta)','100%','Art. 33; KPI 4.3.3. Sistema ticket'],
+  ['C.3.4','Pulizia periodica di grondaie e pozzetti secondo calendario','T','100%','100%','Art. 33. Calendario, rapporti di intervento'],
+  ['C.3.5','Persone autorizzate accompagnate dal personale nei luoghi di intervento','M','100%','100%','Art. 23. Registro accessi'],
+  ['C.3.6','Manutentori con ManDown e tesserino nominativo','M','100%','100%','Art. 33. Registro dotazioni'],
+  ['C.3.7','Cura delle piccole aree verdi','M','100% degli interventi','100%','Art. 33. Programma, registro']]},
+ {k:'x4',x:1,n:'Integrativi: biancheria',i:[
+  ['C.4.1','Frequenze di cambio allineate alla Tabella 5 (coperta semestrale, copriletto e coprimaterasso trimestrali)','U','100%','100%','Art. 27. L\'Allegato A 4.4.1 indica copriletto e coprimaterasso semestrali: da chiarire'],
+  ['C.4.2','Prestazione non a regola d\'arte ripetuta nel più breve tempo','M','≤ 48 h (proposta)','≤ 24 h (proposta)','Art. 27. Registro non conformità'],
+  ['C.4.3','Coperta invernale consegnata nel periodo 15 ottobre - 15 aprile','A','100%','100%','Art. 27. Registro consegne'],
+  ['C.4.4','Kit completo per ogni posto letto occupato','M','100%','100%','Art. 27. Inventario, gestionale ospiti']]},
+ {k:'x5',x:1,n:'Integrativi: personale e adempimenti contrattuali',i:[
+  ['C.5.1','Elenco nominativo del personale con livello CCNL, assicurazione e orario, aggiornato','M','100%','100%','Art. 39. Elenco trasmesso alla Committente'],
+  ['C.5.2','Tessera con foto e abito da lavoro con il nome della ditta (verifica a campione)','M','100%','100%','Artt. 18, 39. Verbali di verifica'],
+  ['C.5.3','Turni scoperti e sostituzioni coperti solo da personale dipendente','M','100%','100%','Art. 18. Registro turni, libro unico'],
+  ['C.5.4','Applicazione del CCNL K511: retribuzioni e contributi versati nei termini','M','100%','100%','Art. 38. Cedolini, versamenti'],
+  ['C.5.5','Responsabile esterno per la videosorveglianza nominato e istruzioni al personale','A','100%','100%','Art. 19. Nomina, registro istruzioni']]},
+ {k:'x6',x:1,n:'Integrativi: controlli sul sistema KPI',i:[
+  ['C.6.1','Verbale di verifica con UdC ispezionate ed esito per ogni servizio (pulizia, portierato, ronda, biancheria, manutenzione)','Q','100%','100%','Art. 40. Verbali interni'],
+  ['C.6.2','Dati del report riconciliati con i log di sistema prima dell\'invio','M','100%','100%','Art. 40-quinquies.4. Verbale di riconciliazione'],
+  ['C.6.3','Controllo a metà mese dei KPI con soglia uguale al target (se mancati, il KPI vale 0)','Q','100%','100%','Allegato A §3.3. Piano di Audit'],
+  ['C.6.4','Penali e contestazioni ricevute: risposta entro 5 giorni lavorativi','M','100% delle risposte','0 penali','Artt. 41, 42. PEC, registro contestazioni'],
+  ['C.6.5','Piano di Audit Interno aggiornato (almeno annualmente)','A','100%','100%','Art. 40-quinquies.1. Versioni del Piano']]},
+ {k:'proc',n:'Adempimenti di processo (artt. 40-quinquies, 42-bis, Allegato A §8)',i:[
+  ['P.1','Dati della quindicina messi a disposizione di DEC e soggetto terzo (entro 3 giorni lavorativi)','Q','—','—','Allegato A §8.1'],
+  ['P.2','Report mensile KPI trasmesso a RUP, DEC e soggetto terzo (entro 10 giorni lavorativi)','M','—','—','Allegato A §8.1'],
+  ['P.3','Autodichiarazione di veridicità del Referente Audit allegata al report (DPR 445/2000)','M','—','—','Art. 40-quinquies.3'],
+  ['P.4','Autocontrolli previsti dal Piano di Audit eseguiti nel periodo','M','—','—','Art. 40-quinquies.3'],
+  ['P.5','Accesso in sola lettura ai dati del soggetto terzo verificato prima del consolidamento','M','—','—','Art. 40-bis.6-bis'],
+  ['P.6','Controdeduzioni su eventuali decurtazioni inviate entro 5 giorni lavorativi dalla PEC','M','—','—','Art. 42-bis'],
+  ['P.7','Evidenze conservate (durata del contratto + 2 anni)','M','—','—','Allegato A §8.5']]}
+];
+var KEY='kpi-checklist-v1', state={}, filtArea='', ids=[], xset={};
+function load(){try{state=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){state={}}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+function $(id){return document.getElementById(id)}
+function period(){return $('mese').value+'-'+$('quind').value}
+function cur(){var p=period();return state[p]||(state[p]={})}
+function item(id){var c=cur();return c[id]||{d:false,e:false,v:''}}
+function isDone(id){var s=item(id);return s.d&&s.e}
+function toast(m){var t=$('toast');t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(function(){t.hidden=true},2200)}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+
+function visible(a,k){
+  var q=$('cerca').value.trim().toLowerCase(), p=$('per').value, st=$('stato').value;
+  var tp=$('tipo').value;
+  if(tp==='c'&&a.x)return false;
+  if(tp==='i'&&!a.x)return false;
+  if(filtArea&&a.k!==filtArea)return false;
+  if(p&&k[2]!==p)return false;
+  if(st==='done'&&!isDone(k[0]))return false;
+  if(st==='open'&&isDone(k[0]))return false;
+  if(q&&(k[0]+' '+k[1]+' '+k[5]).toLowerCase().indexOf(q)<0)return false;
+  return true;
+}
+function render(){
+  var out=$('out'),html='',shown=0;
+  AREE.forEach(function(a){
+    var rows=a.i.filter(function(k){return visible(a,k)});
+    if(!rows.length)return;
+    shown+=rows.length;
+    var d=a.i.filter(function(k){return isDone(k[0])}).length;
+    html+='<section class="area"><header><h2>'+esc(a.n)+'</h2><span class="cnt">'+d+' / '+a.i.length+' completati</span></header><div class="list">';
+    rows.forEach(function(k){
+      var s=item(k[0]),p=k[2]==='P';
+      html+='<div class="kpi'+(isDone(k[0])?' done':'')+'"><div class="id">'+k[0]+'</div><div class="main">'+
+        '<div class="title">'+(a.x?'<span class="star" title="Controllo integrativo proposto, non presente nell\'Allegato A" aria-label="Controllo integrativo">★</span>':'')+'<strong>'+esc(k[1])+'</strong><span class="tag'+(a.k==='proc'?' proc':'')+'">'+PERIODI[k[2]]+'</span>'+(a.x?'<span class="tag proc">Integrativo</span>':'')+'</div>'+
+        (k[3]!=='—'?'<div class="meta">Soglia '+esc(k[3])+' · Target '+esc(k[4])+'</div>':'')+
+        '<p class="det">Fonte: '+esc(k[5])+'</p>'+
+        '<div class="checks"><label><input type="checkbox" data-id="'+k[0]+'" data-f="d"'+(s.d?' checked':'')+'> Dato rilevato</label>'+
+        (k[3]!=='—'?valBox(k,s):'')+
+        '<label><input type="checkbox" data-id="'+k[0]+'" data-f="e"'+(s.e?' checked':'')+'> Evidenza archiviata</label>'+
+        '<label class="foto noprint" title="Fotografa l\'evidenza archiviata"><input type="file" accept="image/*" capture="environment" data-photo="'+k[0]+'" aria-label="Foto evidenza '+k[0]+'">'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Foto evidenza</label>'+
+        '</div>'+thumbs(k[0])+'</div></div>';
+    });
+    html+='</div></section>';
+  });
+  out.innerHTML=shown?html:'<div class="panel empty">Nessun KPI corrisponde ai filtri.</div>';
+  stats();
+}
+function stats(){
+  var tp=$('tipo').value,act=ids.filter(function(i){return tp===''||(tp==='i')===!!xset[i]});
+  var tot=act.length,d=act.filter(isDone).length,onlyD=act.filter(function(i){return item(i).d}).length;
+  var pct=tot?Math.round(d/tot*100):0;
+  $('barfill').style.width=pct+'%';
+  $('stats').innerHTML='<span><b>'+d+'</b> / '+tot+' completati ('+pct+'%)</span><span><b>'+onlyD+'</b> con dato rilevato</span><span><b>'+(tot-d)+'</b> da completare</span>';
+}
+var UNITS={'4.9.3':'kWh','4.3.5':'n.','5.8':'n./100','5.7':'','C.1.11':'n.'};
+function unitOf(k){
+  if(UNITS.hasOwnProperty(k[0]))return UNITS[k[0]];
+  var s=k[3]+' '+k[4];
+  if(/\/ ?5/.test(s))return '/5';
+  if(/%/.test(s))return '%';
+  if(/\bmin\b/.test(s))return 'min';
+  if(/\bh\b/.test(s))return 'h';
+  return '';
+}
+function stepOf(k){var u=unitOf(k);return(u==='%'||u==='/5')?'0.1':(u==='h'?'0.5':'1')}
+function valBox(k,s){
+  return '<span class="val"><input type="number" inputmode="decimal" step="'+stepOf(k)+'" min="'+(k[0]==='5.7'?'-100':'0')+'"'+(unitOf(k)==='%'?' max="100"':'')+' data-u="'+unitOf(k)+'" data-id="'+k[0]+'" data-f="v" value="'+esc(s.v)+'" placeholder="Valore" aria-label="Valore rilevato '+k[0]+'">'+
+    '<span class="arrs noprint"><button type="button" class="arr" data-dir="1" aria-label="Aumenta il valore">▲</button><button type="button" class="arr" data-dir="-1" aria-label="Diminuisci il valore">▼</button></span>'+
+    '<span class="un">'+esc(unitOf(k))+'</span></span>';
+}
+/* Foto delle evidenze: salvate in IndexedDB (non in localStorage, che ha spazio limitato), per periodo e codice */
+var PH={},DBP=null;
+function db(){
+  if(DBP)return DBP;
+  DBP=new Promise(function(res,rej){
+    try{var r=indexedDB.open('kpi-checklist-foto',1);
+      r.onupgradeneeded=function(){r.result.createObjectStore('foto',{keyPath:'k'})};
+      r.onsuccess=function(){res(r.result)};r.onerror=function(){rej(r.error)};
+    }catch(e){rej(e)}});
+  return DBP;
+}
+function tx(mode,fn){return db().then(function(d){return new Promise(function(res,rej){
+  var t=d.transaction('foto',mode),st=t.objectStore('foto'),out=fn(st);
+  t.oncomplete=function(){res(out&&out.result!==undefined?out.result:out)};t.onerror=function(){rej(t.error)};t.onabort=function(){rej(t.error)}})})}
+function loadPhotos(){
+  var p=period();
+  return tx('readonly',function(st){return st.getAll()}).then(function(all){
+    if(p!==period())return;
+    PH={};(all||[]).filter(function(f){return f.p===p}).sort(function(a,b){return a.ts-b.ts})
+      .forEach(function(f){(PH[f.id]=PH[f.id]||[]).push(f)});
+  }).catch(function(){PH={}});
+}
+function compress(file){return new Promise(function(res,rej){
+  var url=URL.createObjectURL(file),img=new Image();
+  img.onload=function(){
+    var M=1280,w=img.naturalWidth,h=img.naturalHeight,r=Math.min(1,M/Math.max(w,h));
+    w=Math.round(w*r);h=Math.round(h*r);
+    var c=document.createElement('canvas');c.width=w;c.height=h;
+    var g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,w,h);g.drawImage(img,0,0,w,h);
+    URL.revokeObjectURL(url);res({data:c.toDataURL('image/jpeg',0.72),w:w,h:h});
+  };
+  img.onerror=function(){URL.revokeObjectURL(url);rej(new Error('img'))};
+  img.src=url;
+})}
+function addPhoto(id,file){
+  var p=period();
+  return compress(file).then(function(o){
+    var f={k:p+'|'+id+'|'+Date.now(),p:p,id:id,ts:Date.now(),data:o.data,w:o.w,h:o.h};
+    return tx('readwrite',function(st){st.put(f)}).then(function(){(PH[id]=PH[id]||[]).push(f)});
+  });
+}
+function delPhoto(key){return tx('readwrite',function(st){st.delete(key)}).then(function(){
+  Object.keys(PH).forEach(function(i){PH[i]=PH[i].filter(function(f){return f.k!==key})})})}
+function delPeriodPhotos(p){return tx('readwrite',function(st){var r=st.openCursor();
+  r.onsuccess=function(){var c=r.result;if(!c)return;if(c.value.p===p)c.delete();c.continue()}})}
+function thumbs(id){
+  var a=PH[id];if(!a||!a.length)return '';
+  return '<div class="thumbs">'+a.map(function(f){
+    return '<div class="th"><img src="'+f.data+'" alt="Evidenza '+esc(id)+' del '+esc(new Date(f.ts).toLocaleString('it-IT'))+'" data-zoom="1">'+
+      '<button type="button" class="del" data-del="'+esc(f.k)+'" aria-label="Elimina foto">×</button></div>'}).join('')+'</div>';
+}
+function who(){return $('compilatore').value.trim()}
+function needWho(){if(who())return true;toast('Inserisci il nome del compilatore');$('compilatore').focus();return false}
+function pLabel(){return $('mese').value+' - '+($('quind').value==='Q1'?'1ª':'2ª')+' quindicina'}
+function clean(s){return String(s).replace(/≥/g,'>=').replace(/≤/g,'<=').replace(/★/g,'*').replace(/≈/g,'~').replace(/[–—]/g,'-').replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/→/g,'->').replace(/…/g,'...').replace(/▲|▼/g,'')}
+function fname(){return 'Checklist-KPI_'+$('mese').value+'-'+$('quind').value+'_'+(who().replace(/[^A-Za-z0-9]+/g,'-').replace(/^-|-$/g,'')||'compilatore')+'.pdf'}
+function buildPdf(){
+  var J=window.jspdf;if(!J||!J.jsPDF)throw new Error('lib');
+  var doc=new J.jsPDF({unit:'mm',format:'a4'});
+  var tot=ids.length,d=ids.filter(isDone).length;
+  doc.setFontSize(15);doc.text('Checklist KPI ADISURC',14,16);
+  doc.setFontSize(10);
+  doc.text(clean('Compilatore: '+who()),14,23);
+  doc.text(clean('Periodo: '+pLabel()),14,28);
+  doc.text('Generato il: '+new Date().toLocaleString('it-IT'),14,33);
+  doc.text('Completati: '+d+' / '+tot+' ('+(tot?Math.round(d/tot*100):0)+'%)   * = controllo integrativo',14,38);
+  var body=[];
+  AREE.forEach(function(a){
+    body.push([{content:clean(a.n)+'  ('+a.i.filter(function(k){return isDone(k[0])}).length+'/'+a.i.length+')',colSpan:7,styles:{fillColor:[225,240,238],fontStyle:'bold',textColor:[20,60,58]}}]);
+    a.i.forEach(function(k){
+      var s=item(k[0]);
+      body.push([k[0],clean((a.x?'* ':'')+k[1]),PERIODI[k[2]],clean(k[3]==='—'?'-':k[3]+' / '+k[4]),s.v!==''&&k[3]!=='—'?clean(s.v+' '+unitOf(k)).trim():'-',s.d?'Sì':'No',s.e?'Sì':'No']);
+    });
+  });
+  doc.autoTable({startY:43,head:[['Cod.','Controllo','Period.','Soglia / Target','Valore','Dato','Evid.']],body:body,
+    styles:{fontSize:7.5,cellPadding:1.4,overflow:'linebreak'},headStyles:{fillColor:[31,111,107]},
+    columnStyles:{0:{cellWidth:13},1:{cellWidth:'auto'},2:{cellWidth:20},3:{cellWidth:33},4:{cellWidth:20},5:{cellWidth:11},6:{cellWidth:11}},
+    margin:{left:14,right:14,bottom:14}});
+  var fotos=[];ids.forEach(function(i){(PH[i]||[]).forEach(function(f){fotos.push(f)})});
+  if(fotos.length){
+    doc.addPage();doc.setFontSize(13);doc.text('Evidenze fotografiche',14,16);
+    var W=88,H=66,x0=14,gap=6,y=24,col=0;
+    fotos.forEach(function(f){
+      if(y+H+8>283){doc.addPage();y=16;col=0}
+      var r=Math.min(W/f.w,H/f.h),w=f.w*r,h=f.h*r,x=x0+col*(W+gap);
+      try{doc.addImage(f.data,'JPEG',x+(W-w)/2,y,w,h)}catch(e){}
+      doc.setFontSize(8);doc.text(clean(f.id+' - '+new Date(f.ts).toLocaleString('it-IT')),x,y+H+4);
+      if(col===1){col=0;y+=H+10}else col=1;
+    });
+  }
+  var n=doc.internal.getNumberOfPages();
+  for(var i=1;i<=n;i++){doc.setPage(i);doc.setFontSize(8);doc.text('Pagina '+i+' di '+n,196,290,{align:'right'})}
+  return doc;
+}
+function msgText(){return clean('Checklist KPI ADISURC\nCompilatore: '+who()+'\nPeriodo: '+pLabel()+'\n\n'+summary())}
+function savePdf(){try{buildPdf().save(fname());return true}catch(e){toast('PDF non disponibile in questa vista');return false}}
+function summary(){
+  var l=['Checklist KPI ADISURC – '+$('mese').value+' '+($('quind').value==='Q1'?'1ª':'2ª')+' quindicina'];
+  AREE.forEach(function(a){
+    var open=a.i.filter(function(k){return!isDone(k[0])});
+    l.push(a.n+': '+(a.i.length-open.length)+'/'+a.i.length+(open.length?' · da completare: '+open.map(function(k){return k[0]}).join(', '):''));
+  });
+  return l.join('\n');
+}
+function init(){
+  load();
+  var n=new Date(),m=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0');
+  $('mese').value=m; $('quind').value=n.getDate()<=15?'Q1':'Q2';
+  AREE.forEach(function(a){a.i.forEach(function(k){ids.push(k[0]);if(a.x)xset[k[0]]=1})});
+  var per=$('per'); Object.keys(PERIODI).forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=PERIODI[k];per.appendChild(o)});
+  var ch=$('areas'),h='<button class="chip" type="button" aria-pressed="true" data-a="">Tutte le aree</button>';
+  AREE.forEach(function(a){h+='<button class="chip" type="button" aria-pressed="false" data-a="'+a.k+'">'+esc(a.n.replace(/ \(.*$/,''))+'</button>'});
+  ch.innerHTML=h;
+  ch.addEventListener('click',function(e){var b=e.target.closest('.chip');if(!b)return;filtArea=b.dataset.a;
+    ch.querySelectorAll('.chip').forEach(function(c){c.setAttribute('aria-pressed',c===b?'true':'false')});render()});
+  ['cerca','per','stato','tipo'].forEach(function(id){$(id).addEventListener('input',render)});
+  ['mese','quind'].forEach(function(id){$(id).addEventListener('input',function(){PH={};render();loadPhotos().then(render)})});
+  $('out').addEventListener('change',function(e){var t=e.target;
+    if(t.dataset.photo){
+      var pid=t.dataset.photo,fl=t.files&&t.files[0];t.value='';if(!fl)return;
+      toast('Salvataggio foto...');
+      addPhoto(pid,fl).then(function(){
+        var c=cur();c[pid]=c[pid]||{d:false,e:false,v:''};c[pid].e=true;save();render();toast('Foto salvata, evidenza archiviata');
+      }).catch(function(){toast('Foto non salvata: memoria non disponibile in questa vista')});
+      return;
+    }
+    var id=t.dataset.id;if(!id)return;
+    var c=cur();c[id]=c[id]||{d:false,e:false,v:''};
+    if(t.dataset.f==='v')c[id].v=t.value;else c[id][t.dataset.f]=t.checked;
+    save();
+    var k=t.closest('.kpi');if(k)k.classList.toggle('done',isDone(id));
+    var hd=t.closest('.area').querySelector('.cnt'),a=AREE.filter(function(x){return x.i.some(function(y){return y[0]===id})})[0];
+    hd.textContent=a.i.filter(function(y){return isDone(y[0])}).length+' / '+a.i.length+' completati';
+    stats()});
+  $('reset').addEventListener('click',function(){var b=$('reset');
+    if(b.dataset.arm){var pp=period();delete state[pp];save();b.textContent='Azzera periodo';delete b.dataset.arm;PH={};render();
+      delPeriodPhotos(pp).catch(function(){});toast('Periodo azzerato (foto comprese)');}
+    else{b.dataset.arm='1';b.textContent='Conferma azzeramento';setTimeout(function(){if(b.dataset.arm){delete b.dataset.arm;b.textContent='Azzera periodo'}},4000)}});
+  try{$('compilatore').value=localStorage.getItem('kpi-checklist-compilatore')||''}catch(e){}
+  $('compilatore').addEventListener('input',function(){try{localStorage.setItem('kpi-checklist-compilatore',$('compilatore').value)}catch(e){}});
+  $('out').addEventListener('click',function(e){
+    var z=e.target.closest('img[data-zoom]');
+    if(z){var lb=document.createElement('div');lb.className='lb';lb.innerHTML='<img alt="">';lb.firstChild.src=z.src;
+      lb.addEventListener('click',function(){lb.remove()});document.body.appendChild(lb);return}
+    var dl=e.target.closest('.del');
+    if(dl){
+      if(!dl.dataset.arm){dl.dataset.arm='1';dl.textContent='Elimina?';setTimeout(function(){if(dl.isConnected&&dl.dataset.arm){delete dl.dataset.arm;dl.textContent='×'}},3000);return}
+      delPhoto(dl.dataset.del).then(function(){render();toast('Foto eliminata')}).catch(function(){toast('Eliminazione non riuscita')});return;
+    }
+    var b=e.target.closest('.arr');if(!b)return;
+    var inp=b.closest('.val').querySelector('input'),st=parseFloat(inp.step)||1,mn=parseFloat(inp.min);
+    var v=parseFloat(String(inp.value).replace(',','.')),mx=parseFloat(inp.max);
+    if(isNaN(v)&&inp.dataset.u==='%'){v=100}
+    else{if(isNaN(v))v=0;v=Math.round((v+st*parseInt(b.dataset.dir,10))*100)/100}
+    if(!isNaN(mn)&&v<mn)v=mn;if(!isNaN(mx)&&v>mx)v=mx;
+    inp.value=v;inp.dispatchEvent(new Event('change',{bubbles:true}));
+  });
+  $('bStampa').addEventListener('click',function(){if(!needWho())return;try{window.print()}catch(e){toast('Stampa non disponibile in questa vista')}});
+  $('bInvia').addEventListener('click',function(){
+    if(!needWho())return;
+    var doc;try{doc=buildPdf()}catch(e){toast('PDF non disponibile in questa vista');return}
+    var file=new File([doc.output('blob')],fname(),{type:'application/pdf'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      navigator.share({files:[file],title:'Checklist KPI ADISURC',text:'Checklist KPI ADISURC - '+pLabel()+' - '+who()}).catch(function(){});
+    }else if(savePdf()){toast('PDF scaricato: allegalo da posta o WhatsApp')}
+  });
+  $('bMail').addEventListener('click',function(){
+    if(!needWho())return;
+    savePdf();
+    var a=document.createElement('a');
+    a.href='mailto:?subject='+encodeURIComponent('Checklist KPI ADISURC - '+pLabel())+'&body='+encodeURIComponent(msgText()+'\n\n(allegare il PDF scaricato)');
+    a.click();toast('Allega il PDF scaricato al messaggio');
+  });
+  $('bWa').addEventListener('click',function(){
+    if(!needWho())return;
+    savePdf();
+    var a=document.createElement('a');a.target='_blank';a.rel='noopener';
+    a.href='https://wa.me/?text='+encodeURIComponent(msgText()+'\n\n(allegare il PDF scaricato)');
+    a.click();toast('Allega il PDF scaricato in WhatsApp');
+  });
+  $('copia').addEventListener('click',function(){var t=summary();
+    var ok=function(){toast('Riepilogo copiato')};
+    var ko=function(){var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');ok()}catch(e){toast('Copia non riuscita')}ta.remove()};
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(ok,ko);else ko()});
+  render();
+  loadPhotos().then(render);
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'){var l=document.querySelector('.lb');if(l)l.remove()}});
+}
+init();
+</script>
